@@ -14,7 +14,7 @@ async function bootstrap() {
     .setTitle('Swagger Quiz')
     .setDescription('The Quiz API routes')
     .setVersion('1.0')
-    .setExternalDoc('JSON version', `${process.env.BACK_URL}/docs-json`)
+    .setExternalDoc('JSON version', `${process.env.HOST_URL}/docs-json`)
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
