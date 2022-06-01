@@ -21,6 +21,9 @@ services:
       - '3000:3000'
     networks:
       - app-network
+    volumes:
+      - ./upload:/var/www/backend/uploads
+      - ./upload:/var/www/backend/uploads/resized
 
 networks:
   app-network:

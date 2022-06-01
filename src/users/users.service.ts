@@ -6,18 +6,21 @@ import { ResponseException } from '../common/exceptions/response.exception';
 import { RegisterUserDto } from '../auth/dto/register.user.dto';
 import * as bcrypt from 'bcrypt';
 import { registrationStatus } from './enums/registration.status.enum';
+import { MediaService } from '../media/media.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserEntity)
     private readonly userRepo: Repository<UserEntity>,
+    private readonly mediaService: MediaService,
   ) {}
 
   async findUserById(id: number): Promise<UserEntity> {
     try {
       return await this.userRepo
         .createQueryBuilder('user')
+        .leftJoinAndSelect('user.photo', 'photo')
         .where('user.id = :id', {
           id,
         })
@@ -31,6 +34,7 @@ export class UsersService {
     try {
       return await this.userRepo
         .createQueryBuilder('user')
+        .leftJoinAndSelect('user.photo', 'photo')
         .where('user.email = :email', {
           email,
         })
@@ -47,6 +51,26 @@ export class UsersService {
         name: data.name,
         email: data.email,
         passwordHash,
+      });
+    } catch (e) {
+      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
+    }
+  }
+
+  async uploadProfileImage(userId: number, file): Promise<UserEntity> {
+    const userData = await this.findUserById(userId);
+
+    if (userData.photo) {
+      await this.mediaService.removeMedia(userData.photo);
+    }
+
+    const media = await this.mediaService.saveMedia(file);
+    await this.mediaService.resizeMedia(file);
+
+    try {
+      return await this.userRepo.save({
+        ...userData,
+        photo: media,
       });
     } catch (e) {
       throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);

@@ -12,7 +12,7 @@ export class RegistrationPipe extends ValidationPipe {
   }
 
   async transform(data) {
-    const user = await this.usersService.findUserById(data.id);
+    const user = await this.usersService.findUserByEmail(data.email);
 
     if (user && user.registrationStatus === registrationStatus.ACTIVE) {
       throw new ResponseException(HttpStatus.CONFLICT, 'User already exists.');
