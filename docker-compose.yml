@@ -22,8 +22,8 @@ services:
     networks:
       - app-network
     volumes:
-      - ./upload:/var/www/backend/uploads
-      - ./upload:/var/www/backend/uploads/resized
+      - ./upload:/var/www/quiz/uploads
+      - ./upload:/var/www/quiz/uploads/resized
 
 networks:
   app-network:
