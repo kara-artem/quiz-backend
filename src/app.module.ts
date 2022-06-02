@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from './mail/mail.module';
 import { MediaModule } from './media/media.module';
+import { QuestionsModule } from './questions/questions.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { MediaModule } from './media/media.module';
     UsersModule,
     MailModule,
     MediaModule,
+    QuestionsModule,
   ],
 })
 export class AppModule {}
