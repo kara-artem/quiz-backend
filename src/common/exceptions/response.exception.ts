@@ -1,11 +1,12 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 
-export class ResponseException extends HttpException {
-  constructor(statusCode: HttpStatus, successMessage?: string) {
-    const data = {
+export class ResponseException<T> extends HttpException {
+  constructor(statusCode: HttpStatus, message?: string, data?: T) {
+    const res = {
       statusCode: statusCode,
-      message: [successMessage],
+      message: [message],
+      data,
     };
-    super(data, statusCode);
+    super(res, statusCode);
   }
 }

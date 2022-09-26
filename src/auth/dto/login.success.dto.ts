@@ -1,5 +1,5 @@
 export class LoginSuccessDto {
-  userId: number;
+  userId: string;
   email: string;
   accessToken: string;
   refreshToken: string;

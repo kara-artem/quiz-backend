@@ -1,11 +1,11 @@
-import { PipeTransform, Injectable, HttpStatus } from '@nestjs/common';
-import { JwtRefreshTokenService } from '../services/jwt.refresh.token.service';
+import { HttpStatus, Injectable, PipeTransform } from '@nestjs/common';
+import { JwtTokenService } from '../services/jwt.token.service';
 import { JwtRefreshTokenDto } from '../dto/jwt.refresh.token.dto';
 import { ResponseException } from '../../common/exceptions/response.exception';
 
 @Injectable()
 export class TokenValidationPipe implements PipeTransform<JwtRefreshTokenDto> {
-  constructor(private readonly jwtRefreshTokenService: JwtRefreshTokenService) {}
+  constructor(private readonly jwtRefreshTokenService: JwtTokenService) {}
 
   async transform(jwtRefreshToken: JwtRefreshTokenDto): Promise<JwtRefreshTokenDto> {
     const { refreshToken } = jwtRefreshToken;

@@ -1,17 +1,12 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, OneToOne } from 'typeorm';
 import { JwtRefreshToken } from '../../auth/entities/jwt.refresh.entity';
 import { registrationStatus } from '../enums/registration.status.enum';
 import { Exclude } from 'class-transformer';
 import { MediaEntity } from '../../media/entities/media.entity';
+import { BaseEntity } from '../../common/entities/base.entity';
 
 @Entity('users')
-export class UserEntity {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
-
-  @CreateDateColumn({ type: 'timestamp' })
-  readonly createdAt: string;
-
+export class UserEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   name: string;
 
@@ -24,11 +19,10 @@ export class UserEntity {
 
   @Exclude()
   @Column({ type: 'varchar', nullable: true })
-  confirmRegisterToken: string;
+  confirmRegisterToken: string | null;
 
-  @OneToOne(() => MediaEntity, { onDelete: 'CASCADE' })
-  @JoinColumn()
-  photo: MediaEntity;
+  @OneToOne(() => MediaEntity, (media) => media.profileImage)
+  media: MediaEntity;
 
   @Column({
     type: 'enum',
@@ -36,10 +30,8 @@ export class UserEntity {
     default: registrationStatus.CONFIRM_EMAIL,
     nullable: false,
   })
-  public registrationStatus: registrationStatus;
+  registrationStatus: registrationStatus;
 
-  @OneToOne(() => JwtRefreshToken, (jwtRefreshToken) => jwtRefreshToken.user, {
-    onDelete: 'CASCADE',
-  })
+  @OneToOne(() => JwtRefreshToken, (jwtRefreshToken) => jwtRefreshToken.user)
   jwtRefreshToken: JwtRefreshToken;
 }

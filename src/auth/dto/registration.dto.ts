@@ -1,18 +1,18 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 
-export class RegisterUserDto {
+export class RegistrationDto {
   @IsOptional()
   @IsString()
-  public name: string;
+  name: string;
 
   @IsNotEmpty()
   @IsEmail()
-  public email: string;
+  email: string;
 
   @IsNotEmpty()
   @IsString()
   @MinLength(8, {
     message: 'Password must be at least 8 characters',
   })
-  public password: string;
+  password: string;
 }

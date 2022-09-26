@@ -1,13 +1,9 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { BaseEntity } from '../../common/entities/base.entity';
+import { UserEntity } from '../../users/entities/user.entity';
 
 @Entity('media')
-export class MediaEntity {
-  @PrimaryGeneratedColumn({ type: 'int', unsigned: true })
-  id: number;
-
-  @CreateDateColumn({ type: 'timestamp' })
-  readonly createdAt: string;
-
+export class MediaEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   mediaName: string;
 
@@ -19,4 +15,11 @@ export class MediaEntity {
 
   @Column({ type: 'varchar' })
   mediaUrl: string;
+
+  @OneToOne(() => UserEntity, (profileImage) => profileImage.media, {
+    onDelete: 'CASCADE',
+    onUpdate: 'CASCADE',
+  })
+  @JoinColumn()
+  profileImage: UserEntity;
 }

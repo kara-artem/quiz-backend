@@ -1,11 +1,12 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
-@ApiTags('Media')
+@ApiTags('media')
 @Controller('media')
 export class MediaController {
-  @Get(':filepath')
-  seeUploadedFile(@Param('filepath') image, @Res() res) {
-    return res.sendFile(image, { root: './uploads/resized' });
+  @Get(':imgpath')
+  seeUploadedFile(@Param('imgpath') imageName: string, @Res() res: Response): void {
+    res.sendFile(imageName, { root: './uploads/resized' });
   }
 }

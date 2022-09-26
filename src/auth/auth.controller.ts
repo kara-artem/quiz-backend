@@ -1,19 +1,20 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
+import { RegistrationDto } from './dto/registration.dto';
 import { TokenValidationPipe } from './pipes/refresh.validation.pipe';
 import { JwtRefreshTokenDto } from './dto/jwt.refresh.token.dto';
-import { LocalAuthGuard } from './guards/local-auth.guard';
+import { LocalAuthGuard } from './guards/local.auth.guard';
+import { LoginDto } from './dto/login.dto';
 import { ApiBody, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt.auth.guard';
 import { RegistrationPipe } from './pipes/registration.pipe';
+import { LoginSuccessDto } from './dto/login.success.dto';
 import { StatusCode } from '../common/decorators/status.code.decorator';
 import { StatusCodeResponseDto } from '../common/dto/status.code.response.dto';
-import { RegisterUserDto } from './dto/register.user.dto';
-import { LoginDto } from './dto/login.dto';
-import { LoginSuccessDto } from './dto/login.success.dto';
 import { LoginSuccessResponseDto } from './dto/login.success.response.dto';
+import { RequestPayloadInterface } from '../common/interfaces/request.payload.interface';
 
-@ApiTags('Authentication')
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -22,24 +23,22 @@ export class AuthController {
   @ApiQuery({ name: 'token', type: 'string' })
   @ApiOkResponse({ type: StatusCodeResponseDto })
   @StatusCode(HttpStatus.OK)
-  async confirmRegister(@Query() { token }): Promise<{ confirmation: string }> {
-    return await this.authService.confirmRegistration(token);
+  async confirmRegister(@Query() { token }: { token: string }): Promise<{ confirmation: string }> {
+    return this.authService.confirmRegistration(token);
   }
 
   @Post('registration')
   @ApiOkResponse({ type: StatusCodeResponseDto })
-  @StatusCode(HttpStatus.OK, 'A link with registration confirmation has been sent to your email')
-  async registration(@Body(RegistrationPipe) data: RegisterUserDto): Promise<void> {
-    return await this.authService.registration(data);
+  @StatusCode(HttpStatus.OK, 'Registration was successful')
+  async registration(@Body(RegistrationPipe) data: RegistrationDto): Promise<void> {
+    return this.authService.registration(data);
   }
 
-  @HttpCode(HttpStatus.OK)
   @Post('refresh')
   @ApiOkResponse({ type: LoginSuccessResponseDto })
   @StatusCode(HttpStatus.OK)
-  async refresh(@Body(TokenValidationPipe) jwtRefreshTokenDto: JwtRefreshTokenDto): Promise<LoginSuccessDto> {
-    const { refreshToken } = jwtRefreshTokenDto;
-    return this.authService.refresh(refreshToken);
+  async refresh(@Body(TokenValidationPipe) jwtRefreshTokenDto: JwtRefreshTokenDto): Promise<LoginSuccessDto | null> {
+    return this.authService.refresh(jwtRefreshTokenDto.refreshToken);
   }
 
   @UseGuards(LocalAuthGuard)
@@ -47,15 +46,15 @@ export class AuthController {
   @ApiBody({ type: LoginDto })
   @ApiOkResponse({ type: LoginSuccessResponseDto })
   @StatusCode(HttpStatus.OK)
-  async login(@Req() req): Promise<LoginSuccessDto> {
-    return await this.authService.login(req.user);
+  async login(@Req() req: RequestPayloadInterface): Promise<LoginSuccessDto> {
+    return this.authService.login(req.user);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @ApiOkResponse({ type: StatusCodeResponseDto })
   @StatusCode(HttpStatus.OK, 'Logout successful')
-  async logout(@Req() req): Promise<void> {
-    return await this.authService.logout(req.user);
+  async logout(@Req() req: RequestPayloadInterface): Promise<void> {
+    return this.authService.logout(req.user);
   }
 }

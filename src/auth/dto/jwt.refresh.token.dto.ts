@@ -1,6 +1,7 @@
-import { IsString } from 'class-validator';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class JwtRefreshTokenDto {
-  @IsString()
+  @IsNotEmpty()
+  @IsUUID()
   refreshToken: string;
 }

@@ -1,26 +1,27 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { UserEntity } from '../../users/entities/user.entity';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { UsersService } from '../../users/users.service';
-import { JwtRefreshTokenService } from './jwt.refresh.token.service';
+import { RegistrationDto } from '../dto/registration.dto';
+import { JwtTokenService } from './jwt.token.service';
 import { JwtService } from '@nestjs/jwt';
-import { ResponseException } from '../../common/exceptions/response.exception';
-import * as bcrypt from 'bcrypt';
-import { registrationStatus } from '../../users/enums/registration.status.enum';
-import { MailService } from '../../mail/mail.service';
-import { RegisterUserDto } from '../dto/register.user.dto';
 import { LoginSuccessDto } from '../dto/login.success.dto';
+import * as bcrypt from 'bcrypt';
+import { ResponseException } from '../../common/exceptions/response.exception';
+import { UserPayloadInterface } from '../../users/interfaces/user.payload.interface';
+import { UserEntity } from '../../users/entities/user.entity';
+import { MailService } from '../../mail/mail.service';
+import { registrationStatus } from '../../users/enums/registration.status.enum';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private readonly jwtRefreshTokenService: JwtRefreshTokenService,
+    private readonly jwtRefreshTokenService: JwtTokenService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<UserEntity> {
-    const user: UserEntity = await this.usersService.findUserByEmail(email);
+  async validateUser(email: string, password: string): Promise<UserPayloadInterface> {
+    const user = await this.usersService.findUserByEmail(email);
 
     if (!user) {
       throw new ResponseException(HttpStatus.NOT_FOUND, 'User is not exist.');
@@ -30,27 +31,21 @@ export class AuthService {
       throw new ResponseException(HttpStatus.NOT_FOUND, 'User not confirmed.');
     }
 
-    if (user) {
-      const checkPassword = await bcrypt.compare(password, user.passwordHash);
+    const checkPassword = await bcrypt.compare(password, user.passwordHash);
 
-      if (user && checkPassword) {
-        return user;
-      }
+    if (!checkPassword) {
+      throw new ResponseException(HttpStatus.UNAUTHORIZED, 'Wrong password');
     }
 
-    throw new ResponseException(HttpStatus.NOT_FOUND, 'Wrong password.');
+    return { userId: user.id, email: user.email };
   }
 
-  async registration(data: RegisterUserDto): Promise<void> {
-    try {
-      const user = await this.usersService.createUser(data);
-      await this.sendRegistrationMessage(user);
-    } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
-    }
+  async registration(data: RegistrationDto): Promise<void> {
+    const user = await this.usersService.createUser(data);
+    await this.sendRegistrationMessage(user);
   }
 
-  async sendRegistrationMessage(user: UserEntity) {
+  async sendRegistrationMessage(user: UserEntity): Promise<void> {
     const token = this.jwtService.sign(
       {
         userId: user.id,
@@ -62,44 +57,38 @@ export class AuthService {
       await this.usersService.saveRegisterToken(user.id, token);
       await this.mailService.sendUserConfirmation(user, token);
     } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
+      Logger.error(e, 'AuthService.sendRegistrationMessage');
+      throw new ResponseException(HttpStatus.BAD_REQUEST, e instanceof Error ? e.message : '');
     }
   }
 
   async confirmRegistration(token: string): Promise<{ confirmation: string }> {
     try {
       const { userId } = await this.jwtService.verify(token);
-
-      return await this.usersService.confirmRegistration(userId);
+      return this.usersService.confirmRegistration(userId);
     } catch {
-      const res: any = await this.jwtService.decode(token);
-
-      await this.usersService.saveRegisterToken(res.userId, null);
-
       return { confirmation: 'expired' };
     }
   }
 
-  async login(user: UserEntity): Promise<LoginSuccessDto> {
-    const payload = { userId: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload);
+  async login(user: UserPayloadInterface): Promise<LoginSuccessDto> {
+    const accessToken = this.jwtService.sign(user);
     const refreshToken = await this.jwtRefreshTokenService.add(user);
 
     return {
-      ...payload,
+      ...user,
       accessToken,
       refreshToken,
     };
   }
 
-  async logout(user): Promise<void> {
+  async logout(user: UserPayloadInterface): Promise<void> {
     const token = await this.jwtRefreshTokenService.findOneByUserId(user.userId);
-    await this.jwtRefreshTokenService.removeOne(token);
+    token && (await this.jwtRefreshTokenService.removeOne(token));
   }
 
-  public async refresh(refreshToken): Promise<any> {
+  public async refresh(refreshToken: string): Promise<LoginSuccessDto | null> {
     const jwtRefreshToken = await this.jwtRefreshTokenService.findOne(refreshToken);
-
-    return await this.login(jwtRefreshToken.user);
+    return jwtRefreshToken && this.login({ userId: jwtRefreshToken.user.id, email: jwtRefreshToken.user.email });
   }
 }

@@ -1,12 +1,12 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { UserEntity } from './entities/user.entity';
-import { DeleteResult, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ResponseException } from '../common/exceptions/response.exception';
-import { RegisterUserDto } from '../auth/dto/register.user.dto';
 import * as bcrypt from 'bcrypt';
 import { registrationStatus } from './enums/registration.status.enum';
 import { MediaService } from '../media/media.service';
+import { RegistrationDto } from '../auth/dto/registration.dto';
 
 @Injectable()
 export class UsersService {
@@ -16,35 +16,26 @@ export class UsersService {
     private readonly mediaService: MediaService,
   ) {}
 
-  async findUserById(id: number): Promise<UserEntity> {
-    try {
-      return await this.userRepo
-        .createQueryBuilder('user')
-        .leftJoinAndSelect('user.photo', 'photo')
-        .where('user.id = :id', {
-          id,
-        })
-        .getOne();
-    } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
-    }
+  async findUserById(id: string): Promise<UserEntity | null> {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.media', 'media')
+      .where('user.id = :id', {
+        id,
+      })
+      .getOne();
   }
 
-  async findUserByEmail(email: string): Promise<UserEntity> {
-    try {
-      return await this.userRepo
-        .createQueryBuilder('user')
-        .leftJoinAndSelect('user.photo', 'photo')
-        .where('user.email = :email', {
-          email,
-        })
-        .getOne();
-    } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
-    }
+  async findUserByEmail(email: string): Promise<UserEntity | null> {
+    return this.userRepo
+      .createQueryBuilder('user')
+      .where('user.email = :email', {
+        email,
+      })
+      .getOne();
   }
 
-  async createUser(data: RegisterUserDto): Promise<UserEntity> {
+  async createUser(data: RegistrationDto): Promise<UserEntity> {
     const passwordHash = await bcrypt.hash(data.password, 10);
     try {
       return await this.userRepo.save({
@@ -53,60 +44,54 @@ export class UsersService {
         passwordHash,
       });
     } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
+      Logger.error(e, 'UsersService.createUser');
+      throw new ResponseException(HttpStatus.BAD_REQUEST, e instanceof Error ? e.message : '');
     }
   }
 
-  async uploadProfileImage(userId: number, file): Promise<UserEntity> {
-    const userData = await this.findUserById(userId);
+  async uploadProfileImage(userId: string, file: Express.Multer.File): Promise<UserEntity> {
+    const user = await this.findUserById(userId);
 
-    if (userData.photo) {
-      await this.mediaService.removeMedia(userData.photo);
+    if (user?.media) {
+      await this.mediaService.removeMedia(user.media);
     }
-
     const media = await this.mediaService.saveMedia(file);
     await this.mediaService.resizeMedia(file);
 
     try {
-      return await this.userRepo.save({
-        ...userData,
-        photo: media,
+      return this.userRepo.save({
+        ...user,
+        media,
       });
     } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
+      Logger.error(e, 'UsersService.uploadProfileImage');
+      throw new ResponseException(HttpStatus.BAD_REQUEST, e instanceof Error ? e.message : '');
     }
   }
 
-  async saveRegisterToken(userId: number, confirmRegisterToken: string): Promise<void> {
+  async saveRegisterToken(userId: string, confirmRegisterToken: string): Promise<void> {
     try {
       await this.userRepo.update(userId, { confirmRegisterToken });
     } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
+      Logger.error(e, 'UsersService.saveRegisterToken');
+      throw new ResponseException(HttpStatus.BAD_REQUEST, e instanceof Error ? e.message : '');
     }
   }
 
-  async confirmRegistration(userId: number): Promise<{ confirmation: string }> {
-    const user = await this.findUserById(userId);
-
-    if (user) {
-      try {
-        await this.userRepo.update(user.id, {
-          registrationStatus: registrationStatus.ACTIVE,
-          confirmRegisterToken: null,
-        });
-      } catch (e) {
-        throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
-      }
-
-      return { confirmation: 'success' };
-    }
-  }
-
-  async deleteUser(id: number): Promise<DeleteResult> {
+  async confirmRegistration(userId: string): Promise<{ confirmation: string }> {
     try {
-      return await this.userRepo.delete({ id });
+      await this.userRepo.update(userId, {
+        registrationStatus: registrationStatus.ACTIVE,
+        confirmRegisterToken: null,
+      });
+      return { confirmation: 'success' };
     } catch (e) {
-      throw new ResponseException(HttpStatus.BAD_REQUEST, e.message);
+      Logger.error(e, 'UsersService.confirmRegistration');
+      throw new ResponseException(HttpStatus.BAD_REQUEST, e instanceof Error ? e.message : '');
     }
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await this.userRepo.delete({ id });
   }
 }
