@@ -13,19 +13,19 @@ services:
       - './pg_data:/var/lib/postgresql/data'
     restart: always
 
-#  back:
-#    build:
-#      context: ./
-#    ports:
-#      - '3000:3000'
-#    networks:
-#      - app-network
-#    volumes:
-#      - ./uploads:/var/www/quiz/uploads
-#      - ./resized:/var/www/quiz/uploads/resized
-#    depends_on:
-#      - db
-#    restart: always
+  back:
+    build:
+      context: ./
+    ports:
+      - '3000:3000'
+    networks:
+      - app-network
+    volumes:
+      - ./uploads:/var/www/quiz/uploads
+      - ./resized:/var/www/quiz/uploads/resized
+    depends_on:
+      - db
+    restart: always
 
 volumes:
   quiz_db:

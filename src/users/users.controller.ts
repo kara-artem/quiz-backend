@@ -1,5 +1,5 @@
-import { Controller, Delete, Get, HttpStatus, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { Delete, Get, HttpStatus, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { ApiBody, ApiConsumes, ApiOkResponse } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UserPayloadInterface } from './interfaces/user.payload.interface';
 import { UserPayload } from './decorators/user.payload.decorator';
@@ -12,11 +12,9 @@ import { diskStorage } from 'multer';
 import { FileUploadDto } from '../common/dto/file.upload.dto';
 import { CheckFilePipe } from '../common/pipes/check.file.pipe';
 import { editFileName, imageFileFilter } from '../common/utils/file-upload.utils';
-import { JwtAuthGuard } from '../auth/guards/jwt.auth.guard';
+import { QuizController } from '../common/decorators/quiz.controller.decorator';
 
-@ApiTags('users')
-@UseGuards(JwtAuthGuard)
-@Controller('users')
+@QuizController('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
