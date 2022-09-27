@@ -21,8 +21,8 @@ services:
     networks:
       - app-network
     volumes:
-      - ./uploads:/var/www/quiz/uploads
-      - ./resized:/var/www/quiz/uploads/resized
+      - ./uploads:/var/www/quiz_backend/uploads
+      - ./resized:/var/www/quiz_backend/uploads/resized
     depends_on:
       - db
     restart: always
