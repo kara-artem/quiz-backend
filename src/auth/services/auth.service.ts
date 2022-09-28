@@ -62,12 +62,12 @@ export class AuthService {
     }
   }
 
-  async confirmRegistration(token: string): Promise<{ confirmation: string }> {
+  async confirmRegistration(token: string): Promise<{ confirmation: boolean }> {
     try {
       const { userId } = await this.jwtService.verify(token);
       return this.usersService.confirmRegistration(userId);
     } catch {
-      return { confirmation: 'expired' };
+      return { confirmation: false };
     }
   }
 

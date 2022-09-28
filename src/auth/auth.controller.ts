@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
 import { RegistrationDto } from './dto/registration.dto';
 import { TokenValidationPipe } from './pipes/refresh.validation.pipe';
@@ -13,6 +13,7 @@ import { StatusCode } from '../common/decorators/status.code.decorator';
 import { StatusCodeResponseDto } from '../common/dto/status.code.response.dto';
 import { LoginSuccessResponseDto } from './dto/login.success.response.dto';
 import { RequestPayloadInterface } from '../common/interfaces/request.payload.interface';
+import { Response } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -23,8 +24,11 @@ export class AuthController {
   @ApiQuery({ name: 'token', type: 'string' })
   @ApiOkResponse({ type: StatusCodeResponseDto })
   @StatusCode(HttpStatus.OK)
-  async confirmRegister(@Query() { token }: { token: string }): Promise<{ confirmation: string }> {
-    return this.authService.confirmRegistration(token);
+  async confirmRegister(@Query() { token }: { token: string }, @Res() res: Response): Promise<void> {
+    const { confirmation } = await this.authService.confirmRegistration(token);
+    confirmation
+      ? res.redirect('https://quiz-freeze.vercel.app/login/?confirmation=success')
+      : res.redirect('https://quiz-freeze.vercel.app/login/?confirmation=expired');
   }
 
   @Post('registration')

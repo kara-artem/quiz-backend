@@ -78,13 +78,13 @@ export class UsersService {
     }
   }
 
-  async confirmRegistration(userId: string): Promise<{ confirmation: string }> {
+  async confirmRegistration(userId: string): Promise<{ confirmation: boolean }> {
     try {
       await this.userRepo.update(userId, {
         registrationStatus: registrationStatus.ACTIVE,
         confirmRegisterToken: null,
       });
-      return { confirmation: 'success' };
+      return { confirmation: true };
     } catch (e) {
       Logger.error(e, 'UsersService.confirmRegistration');
       throw new ResponseException(HttpStatus.BAD_REQUEST, e instanceof Error ? e.message : '');
