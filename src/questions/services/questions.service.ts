@@ -16,6 +16,10 @@ export class QuestionsService {
     return this.questionRepo.findOne({ where: { id } });
   }
 
+  async getQuestionByOrderNumber(orderNumber: number): Promise<QuestionEntity | null> {
+    return this.questionRepo.findOne({ where: { orderNumber } });
+  }
+
   async getQuestions(): Promise<QuestionEntity[] | null> {
     return this.questionRepo.createQueryBuilder('question').leftJoinAndSelect('question.options', 'options').getMany();
   }

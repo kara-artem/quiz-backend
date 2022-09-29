@@ -14,6 +14,7 @@ import { OptionsService } from './services/options.service';
 import { OptionAbsencePipe } from './pipes/option.absence.pipe';
 import { QuizSwaggerDecorator } from '../common/decorators/quiz.swagger.decorator';
 import { QuestionsResponseDto } from './dto/questions.response.dto';
+import { CreateQuestionPipe } from './pipes/create.question.pipe';
 
 @QuizController('questions')
 export class QuestionsController {
@@ -29,7 +30,7 @@ export class QuestionsController {
   @Post()
   @QuizSwaggerDecorator('Create question', QuestionResponseDto)
   @StatusCode(HttpStatus.CREATED)
-  async createQuestion(@Body() data: CreateQuestionDto): Promise<QuestionEntity> {
+  async createQuestion(@Body(CreateQuestionPipe) data: CreateQuestionDto): Promise<QuestionEntity> {
     return this.questionsService.createQuestion(data);
   }
 
