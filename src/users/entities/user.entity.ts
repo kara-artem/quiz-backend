@@ -21,14 +21,6 @@ export class UserEntity extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   confirmRegisterToken: string | null;
 
-  @OneToOne(() => MediaEntity, {
-    onDelete: 'SET NULL',
-    eager: true,
-    nullable: true,
-  })
-  @JoinColumn()
-  media?: MediaEntity | null;
-
   @Column({
     type: 'enum',
     enum: registrationStatus,
@@ -36,6 +28,14 @@ export class UserEntity extends BaseEntity {
     nullable: false,
   })
   registrationStatus: registrationStatus;
+
+  @OneToOne(() => MediaEntity, {
+    onDelete: 'SET NULL',
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn()
+  media?: MediaEntity | null;
 
   @OneToOne(() => JwtRefreshToken, (jwtRefreshToken) => jwtRefreshToken.user)
   jwtRefreshToken: JwtRefreshToken;

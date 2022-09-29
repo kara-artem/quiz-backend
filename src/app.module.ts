@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MailModule } from './mail/mail.module';
 import { MediaModule } from './media/media.module';
 import { getPostgresConfig } from './common/configs/db.config';
+import { QuestionsModule } from './questions/questions.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { getPostgresConfig } from './common/configs/db.config';
     UsersModule,
     MailModule,
     MediaModule,
+    QuestionsModule,
   ],
 })
 export class AppModule {}

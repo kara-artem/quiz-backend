@@ -4,8 +4,7 @@ import { RegistrationDto } from './dto/registration.dto';
 import { TokenValidationPipe } from './pipes/refresh.validation.pipe';
 import { JwtRefreshTokenDto } from './dto/jwt.refresh.token.dto';
 import { LocalAuthGuard } from './guards/local.auth.guard';
-import { LoginDto } from './dto/login.dto';
-import { ApiBody, ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from './guards/jwt.auth.guard';
 import { RegistrationPipe } from './pipes/registration.pipe';
 import { LoginSuccessDto } from './dto/login.success.dto';
@@ -14,6 +13,8 @@ import { StatusCodeResponseDto } from '../common/dto/status.code.response.dto';
 import { LoginSuccessResponseDto } from './dto/login.success.response.dto';
 import { RequestPayloadInterface } from '../common/interfaces/request.payload.interface';
 import { Response } from 'express';
+import { QuizSwaggerDecorator } from '../common/decorators/quiz.swagger.decorator';
+import { LoginDto } from './dto/login.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -21,8 +22,12 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Get('confirm-registration')
-  @ApiQuery({ name: 'token', type: 'string' })
-  @ApiOkResponse({ type: StatusCodeResponseDto })
+  @QuizSwaggerDecorator('Confirm registration', StatusCodeResponseDto, {
+    apiQueryOptions: {
+      name: 'token',
+      type: 'string',
+    },
+  })
   @StatusCode(HttpStatus.OK)
   async confirmRegister(@Query() { token }: { token: string }, @Res() res: Response): Promise<void> {
     const { confirmation } = await this.authService.confirmRegistration(token);
@@ -32,14 +37,14 @@ export class AuthController {
   }
 
   @Post('registration')
-  @ApiOkResponse({ type: StatusCodeResponseDto })
+  @QuizSwaggerDecorator('User registration', StatusCodeResponseDto)
   @StatusCode(HttpStatus.OK, 'Registration was successful')
   async registration(@Body(RegistrationPipe) data: RegistrationDto): Promise<void> {
     return this.authService.registration(data);
   }
 
   @Post('refresh')
-  @ApiOkResponse({ type: LoginSuccessResponseDto })
+  @QuizSwaggerDecorator('Refresh access token by refresh token', LoginSuccessResponseDto)
   @StatusCode(HttpStatus.OK)
   async refresh(@Body(TokenValidationPipe) jwtRefreshTokenDto: JwtRefreshTokenDto): Promise<LoginSuccessDto | null> {
     return this.authService.refresh(jwtRefreshTokenDto.refreshToken);
@@ -47,8 +52,9 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  @ApiBody({ type: LoginDto })
-  @ApiOkResponse({ type: LoginSuccessResponseDto })
+  @QuizSwaggerDecorator('User authorization', LoginSuccessResponseDto, {
+    apiBodyOptions: { type: LoginDto },
+  })
   @StatusCode(HttpStatus.OK)
   async login(@Req() req: RequestPayloadInterface): Promise<LoginSuccessDto> {
     return this.authService.login(req.user);
@@ -56,7 +62,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  @ApiOkResponse({ type: StatusCodeResponseDto })
+  @QuizSwaggerDecorator('User logout', StatusCodeResponseDto)
   @StatusCode(HttpStatus.OK, 'Logout successful')
   async logout(@Req() req: RequestPayloadInterface): Promise<void> {
     return this.authService.logout(req.user);

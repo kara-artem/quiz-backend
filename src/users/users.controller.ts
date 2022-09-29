@@ -1,5 +1,5 @@
 import { Delete, Get, HttpStatus, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { ApiBody, ApiConsumes, ApiOkResponse } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { UserPayloadInterface } from './interfaces/user.payload.interface';
 import { UserPayload } from './decorators/user.payload.decorator';
@@ -13,20 +13,21 @@ import { FileUploadDto } from '../common/dto/file.upload.dto';
 import { CheckFilePipe } from '../common/pipes/check.file.pipe';
 import { editFileName, imageFileFilter } from '../common/utils/file-upload.utils';
 import { QuizController } from '../common/decorators/quiz.controller.decorator';
+import { QuizSwaggerDecorator } from '../common/decorators/quiz.swagger.decorator';
 
 @QuizController('users')
 export class UsersController {
   constructor(private readonly userService: UsersService) {}
 
   @Get('profile')
-  @ApiOkResponse({ type: UserResponseDto })
+  @QuizSwaggerDecorator('Get profile info', UserResponseDto)
   @StatusCode(HttpStatus.OK)
   async getProfile(@UserPayload() user: UserPayloadInterface): Promise<UserEntity | null> {
     return this.userService.findUserById(user.userId);
   }
 
   @Post('profile-image')
-  @ApiOkResponse({ type: UserResponseDto })
+  @QuizSwaggerDecorator('Upload profile avatar', UserResponseDto)
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
@@ -49,7 +50,7 @@ export class UsersController {
   }
 
   @Delete('profile')
-  @ApiOkResponse({ type: StatusCodeResponseDto })
+  @QuizSwaggerDecorator('Delete profile', StatusCodeResponseDto)
   @StatusCode(HttpStatus.OK)
   async deleteProfile(@UserPayload() user: UserPayloadInterface): Promise<void> {
     return this.userService.deleteUser(user.userId);
