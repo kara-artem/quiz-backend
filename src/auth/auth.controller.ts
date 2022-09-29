@@ -27,8 +27,8 @@ export class AuthController {
   async confirmRegister(@Query() { token }: { token: string }, @Res() res: Response): Promise<void> {
     const { confirmation } = await this.authService.confirmRegistration(token);
     confirmation
-      ? res.redirect('https://quiz-freeze.vercel.app/login/?confirmation=success')
-      : res.redirect('https://quiz-freeze.vercel.app/login/?confirmation=expired');
+      ? res.redirect('https://quiz-freeze.site/login/?confirmation=success')
+      : res.redirect('https://quiz-freeze.site/login/?confirmation=expired');
   }
 
   @Post('registration')

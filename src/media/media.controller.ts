@@ -5,7 +5,7 @@ import { Response } from 'express';
 @ApiTags('media')
 @Controller('media')
 export class MediaController {
-  @Get(':imgpath')
+  @Get('url/:imgpath')
   seeUploadedFile(@Param('imgpath') imageName: string, @Res() res: Response): void {
     res.sendFile(imageName, { root: './uploads/resized' });
   }

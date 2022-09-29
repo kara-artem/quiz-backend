@@ -20,7 +20,7 @@ export class MediaService {
         mediaName: file.filename,
         mediaPath: `uploads/resized/${file.filename}`,
         mediaMimeType: file.mimetype,
-        mediaUrl: `/api/media/${file.filename}`,
+        mediaUrl: `/api/media/url/${file.filename}`,
       });
     } catch (e) {
       Logger.error(e, 'MediaService.saveMedia');

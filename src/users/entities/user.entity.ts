@@ -1,4 +1,4 @@
-import { Column, Entity, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
 import { JwtRefreshToken } from '../../auth/entities/jwt.refresh.entity';
 import { registrationStatus } from '../enums/registration.status.enum';
 import { Exclude } from 'class-transformer';
@@ -21,8 +21,13 @@ export class UserEntity extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   confirmRegisterToken: string | null;
 
-  @OneToOne(() => MediaEntity, (media) => media.profileImage)
-  media: MediaEntity;
+  @OneToOne(() => MediaEntity, {
+    onDelete: 'SET NULL',
+    eager: true,
+    nullable: true,
+  })
+  @JoinColumn()
+  media?: MediaEntity | null;
 
   @Column({
     type: 'enum',
