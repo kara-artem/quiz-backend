@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from '../../common/entities/base.entity';
 import { UserEntity } from '../../users/entities/user.entity';
 
@@ -16,10 +16,13 @@ export class MediaEntity extends BaseEntity {
   @Column({ type: 'varchar' })
   mediaUrl: string;
 
-  @OneToOne(() => UserEntity, (profileImage) => profileImage.media, {
-    onDelete: 'CASCADE',
+  @Column({ type: 'uuid', nullable: true })
+  ownerId?: string | null;
+
+  @ManyToOne(() => UserEntity, {
+    onDelete: 'SET NULL',
     onUpdate: 'CASCADE',
   })
   @JoinColumn()
-  profileImage: UserEntity;
+  owner?: UserEntity | null;
 }
