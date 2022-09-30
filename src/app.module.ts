@@ -7,6 +7,7 @@ import { MailModule } from './mail/mail.module';
 import { MediaModule } from './media/media.module';
 import { getPostgresConfig } from './common/configs/db.config';
 import { QuestionsModule } from './questions/questions.module';
+import { AnswersModule } from './answers/answers.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { QuestionsModule } from './questions/questions.module';
     MailModule,
     MediaModule,
     QuestionsModule,
+    AnswersModule,
   ],
 })
 export class AppModule {}
