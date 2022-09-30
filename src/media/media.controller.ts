@@ -9,6 +9,6 @@ export class MediaController {
   @Get('url/:imgpath')
   @QuizSwaggerDecorator('Get media by path')
   seeUploadedFile(@Param('imgpath') imageName: string, @Res() res: Response): void {
-    res.sendFile(imageName, { root: './uploads/resized' });
+    res.sendFile(imageName, { root: './media' });
   }
 }

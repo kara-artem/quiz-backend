@@ -20,7 +20,7 @@ services:
       - '3000:3000'
     volumes:
       - ./uploads:/var/www/quiz_backend/uploads
-      - ./resized:/var/www/quiz_backend/uploads/resized
+      - ./media:/var/www/quiz_backend/media
     depends_on:
       - db
     restart: always
