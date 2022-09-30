@@ -21,7 +21,11 @@ export class QuestionsService {
   }
 
   async getQuestions(): Promise<QuestionEntity[] | null> {
-    return this.questionRepo.createQueryBuilder('question').leftJoinAndSelect('question.options', 'options').getMany();
+    return this.questionRepo
+      .createQueryBuilder('question')
+      .leftJoinAndSelect('question.options', 'options')
+      .orderBy('question.orderNumber', 'ASC')
+      .getMany();
   }
 
   async createQuestion(data: CreateQuestionDto): Promise<QuestionEntity> {
